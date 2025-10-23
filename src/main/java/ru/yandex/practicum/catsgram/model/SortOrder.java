@@ -15,4 +15,8 @@ public enum SortOrder {
             default: return null;
         }
     }
+
+    public static boolean isValid(String sort) {
+        return from(sort) != null;
+    }
 }
