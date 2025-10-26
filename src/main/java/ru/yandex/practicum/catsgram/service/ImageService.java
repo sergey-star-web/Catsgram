@@ -1,7 +1,6 @@
 package ru.yandex.practicum.catsgram.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+//import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,15 +22,19 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class ImageService {
     private final PostService postService;
 
     private final Map<Long, Image> images = new HashMap<>();
 
     // директория для хранения изображений
-    @Value("${catsgram.image-directory}")
+    //@Value("${catsgram.image-directory}")
     private String imageDirectory;
+
+    public ImageService(PostService postService) {
+        this.postService = postService;
+    }
 
     // сохранение списка изображений, связанных с указанным постом
     public List<Image> saveImages(long postId, List<MultipartFile> files) {

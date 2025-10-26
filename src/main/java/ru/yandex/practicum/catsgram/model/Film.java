@@ -11,5 +11,5 @@ public class Film {
     private int producedYear;
     private Date releaseDate;
     private String kind;
-    private int MinLength;
+    private int minLength;
 }

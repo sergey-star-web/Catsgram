@@ -1,22 +1,13 @@
 package ru.yandex.practicum;
 
 import org.postgresql.ds.PGConnectionPoolDataSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import ru.yandex.practicum.catsgram.model.Film;
 import ru.yandex.practicum.catsgram.rowmapper.FilmRowMapper;
 
-import javax.sql.DataSource;
 import javax.sql.PooledConnection;
 import java.sql.*;
-import java.time.LocalDate;
-//import java.time.LocalDate;
 
 public class Main {
     public static void main(String[] args) {

@@ -2,22 +2,48 @@ package ru.yandex.practicum.catsgram.service;
 
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.catsgram.dal.UserRepository;
+import ru.yandex.practicum.catsgram.dto.NewUserRequest;
+import ru.yandex.practicum.catsgram.dto.UpdateUserRequest;
 import ru.yandex.practicum.catsgram.dto.UserDto;
 import ru.yandex.practicum.catsgram.exception.ConditionsNotMetException;
 import ru.yandex.practicum.catsgram.exception.DuplicatedDataException;
+import ru.yandex.practicum.catsgram.exception.NotFoundException;
 import ru.yandex.practicum.catsgram.mapper.UserMapper;
 import ru.yandex.practicum.catsgram.model.User;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService {
-    private Map<Long, User> users = new HashMap<>();
     private final UserRepository userRepository;
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    public UserDto createUser(NewUserRequest request) {
+        if (request.getEmail() == null || request.getEmail().isEmpty()) {
+            throw new ConditionsNotMetException("Имейл должен быть указан");
+        }
+
+        Optional<User> alreadyExistUser = userRepository.findByEmail(request.getEmail());
+        if (alreadyExistUser.isPresent()) {
+            throw new DuplicatedDataException("Данный имейл уже используется");
+        }
+
+        User user = UserMapper.mapToUser(request);
+
+        user = userRepository.save(user);
+
+        return UserMapper.mapToUserDto(user);
+    }
+
+    public UserDto getUserById(long userId) {
+        return userRepository.findById(userId)
+                .map(UserMapper::mapToUserDto)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден с ID: " + userId));
     }
 
     public List<UserDto> getUsers() {
@@ -27,48 +53,11 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    private Long getNextId() {
-        return users.keySet().stream().max(Long::compare).orElse(0L) + 1;
-    }
-
-    public User addUser(User user) {
-        if (user.getEmail() == null) {
-            throw new ConditionsNotMetException("Имейл должен быть указан");
-        }
-        if (users.values().stream().anyMatch(u -> u.getEmail().equals(user.getEmail()))) {
-            throw new DuplicatedDataException("Этот имейл уже используется");
-        }
-        Long id = getNextId();
-        user.setId(id);
-        user.setRegistrationDate(new Date().toInstant());
-        users.put(id, user);
-        return user;
-    }
-
-    public User updateUser(User user) {
-        if (user.getId() == null) {
-            throw new ConditionsNotMetException("Id должен быть указан");
-        }
-        User existingUser = users.get(user.getId());
-        if (existingUser == null) {
-            throw new RuntimeException("Пользователь не найден");
-        }
-        if (user.getEmail() != null) {
-            if (users.values().stream().anyMatch(u -> u.getEmail().equals(user.getEmail()) && !u.getId().equals(user.getId()))) {
-                throw new DuplicatedDataException("Этот имейл уже используется");
-            }
-            existingUser.setEmail(user.getEmail());
-        }
-        if (user.getUsername() != null) {
-            existingUser.setUsername(user.getUsername());
-        }
-        if (user.getPassword() != null) {
-            existingUser.setPassword(user.getPassword());
-        }
-        return user;
-    }
-
-    public Optional<User> findById(long authorId) {
-        return Optional.ofNullable(users.get(authorId));
+    public UserDto updateUser(long userId, UpdateUserRequest request) {
+        User updatedUser = userRepository.findById(userId)
+                .map(user -> UserMapper.updateUserFields(user, request))
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        updatedUser = userRepository.update(updatedUser);
+        return UserMapper.mapToUserDto(updatedUser);
     }
 }
