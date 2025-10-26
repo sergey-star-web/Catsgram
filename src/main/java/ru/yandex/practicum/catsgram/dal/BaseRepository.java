@@ -27,7 +27,12 @@ public class BaseRepository<T> {
     }
 
     protected List<T> findMany(String query, Object... params) {
-        return jdbc.query(query, mapper, params);
+        try {
+            return jdbc.query(query, mapper, params);
+        } catch (EmptyResultDataAccessException ignored) {
+            System.out.println(ignored);
+            return null;
+        }
     }
 
     protected boolean delete(String query, long id) {
